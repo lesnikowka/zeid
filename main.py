@@ -1,5 +1,79 @@
 import numpy as np
 
+nMax = 100
+s = 0
+eps = 0.00000001
+eps_max = 0.
+eps_cur = 0.
+x_old = 0.
+x_new = 0.
+block_size = 3
+endCauseIsEps = False
+endCauseIsS = False
+end = False
+
+A = 0
+B = 1
+C = 0
+D = 0.2
+M = 4
+N = 4
+h = (B-A)/N
+k = (D-C)/M
+
+
+def trueSol(x_, y_):
+    return x_**3 + y_**3 + 2
+def u(x_, y_):
+    return trueSol(x_, y_)
+def u0y(y_):
+    return y_**3 + 2
+def u1y(y_):
+    return y_**3 + 3
+def ux0(x_):
+    return x_**3 + 2
+def ux0_2(x_):
+    return x_**3 + 251./125.
+def f(x_, y_):
+    return -6 * (x_ + y_)
+
+v = [ ([0.]*(N+1)).copy() for i in range(M + 1)]
+
+for i in range(M + 1):
+    v[0][i] = u0y(i * k)
+    v[len(v)-1][i] = u1y(i * k)
+
+for i in range(N + 1):
+    v[i][0] = ux0(i * h)
+    v[i][len(v[0])-1] = ux0_2(i * h)
+
+while not end:
+    eps_max = 0.
+    for j_ in range(1, M):
+        for i_ in range(1, N):
+            AA = -2 * ( 1 / (h ** 2) + 1 / (k ** 2))
+            v_old = v[i_][j_]
+            v[i_][j_] = -f(i_*h, j_*k)
+            v[i_][j_] -= v[i_ - 1][j_] * (1 / (h**2))
+            v[i_][j_] -= v[i_ + 1][j_] * (1 / (h**2))
+            v[i_][j_] -= v[i_ ][j_ - 1] * (1 / (k**2))
+            v[i_][j_] -= v[i_ ][j_ + 1] * (1 / (k**2))
+            v[i_][j_] /= AA
+            eps_cur = abs(v_old - v[i_][j_])
+            eps_max = max(eps_cur, eps_max)
+    s += 1
+
+    if eps_max <= eps:
+        endCauseIsEps = True
+        end = True
+
+    if s >= nMax:
+        endCauseIsS = True
+        end = True
+
+
+# ИНФОРМАЦИЯ ДЛЯ ОТЧЕТА
+
 def fillInfo(text, data):
     for val in data:
         text = text.replace("%", str(val), 1)
@@ -33,19 +107,12 @@ def getInfo():
     return ss
 
 
-nMax = 100
-s = 0
-eps = 0.00000001
-eps_max = 0.
-eps_cur = 0.
-n = 9
+n = (M-1)*(N-1)
 x = [0.]*n
-x_old = 0.
-x_new = 0.
-block_size = 3
-endCauseIsEps = False
-endCauseIsS = False
-end = False
+
+for i in range(3):
+    for j in range(3):
+        x[j*3+i] = v[i+1][j+1]
 
 a = [
     [-832., 16., 0., 400., 0., 0., 0., 0., 0.],
@@ -70,50 +137,6 @@ b = [
     -849.3,
     -1014.604
 ]
-
-def trueSol(x_, y_):
-    return x_**3 + y_**3 + 2
-
-while not end:
-    eps_max = 0.
-    for i in range(n):
-        x_old = x[i]
-        x_new = b[i]
-
-        arr_j = []
-
-        if i >= 1:
-            arr_j.append(i - 1)
-        if i < n - 1:
-            arr_j.append(i + 1)
-        if i - block_size >= 0:
-            arr_j.append(i - block_size)
-        if i + block_size < n:
-            arr_j.append(i + block_size)
-
-        for j in arr_j:
-            x_new -= a[i][j] * x[j]
-
-        x_new /= a[i][i]
-
-        eps_cur = abs(x_old - x_new)
-        eps_max = max(eps_cur, eps_max)
-
-        x[i] = x_new
-
-    s += 1
-
-    if eps_max <= eps:
-        endCauseIsEps = True
-        end = True
-
-    if s >= nMax:
-        endCauseIsS = True
-        end = True
-
-
-
-
 
 gauss_sol = np.linalg.solve(a, b)
 print("Решение методом Гаусса")
