@@ -92,10 +92,12 @@ if endCauseIsS:
     ss += "Выход по числу итераций\n"
 
 residual = (np.array(old_a) @ np.array(x)) - np.array(b)
+inf_norm = 0
 
-residual_abs = [abs(i) for i in residual]
+for ri in residual:
+    inf_norm += ri * ri
 
-inf_norm = max(residual_abs)
+inf_norm = inf_norm ** 0.5
 
 ss += "Норма невязки: " + str(inf_norm) + "\n"
 
@@ -106,11 +108,5 @@ ss = fillInfo(ss, [nMax, eps, s, eps_max])
 
 for i in range(n):
     ss += "x[" + str(i) + "] = " + str(x[i]) + "\n"
-
-
-
-
-
-
 
 print(ss)
