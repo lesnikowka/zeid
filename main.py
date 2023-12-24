@@ -22,6 +22,8 @@ a = [
     [0., 0., 0., 0., 0., 400., 0., 16., -832.]
 ]
 
+old_a = a.copy()
+
 b = [
     -836.452,
     -846.7,
@@ -51,8 +53,12 @@ print("Истинное решение: ")
 print(trueSolArr2)
 print()
 
+endCauseIsEps = False
+endCauseIsS = False
 
-while True:
+end = False
+
+while not end:
     eps_max = 0.
     for i in range(n):
         x_old = x[i]
@@ -65,8 +71,12 @@ while True:
         eps_max = max(eps_cur, eps_max)
         x[i] = x_new
     s += 1
-    if eps_max <= eps or s >= nMax:
-        break
+    if eps_max <= eps:
+        endCauseIsEps = True
+        end = True
+    if s >= nMax:
+        endCauseIsS = True
+        end = True
 
 
 def fillInfo(text, data):
@@ -74,12 +84,33 @@ def fillInfo(text, data):
         text = text.replace("%", str(val), 1)
     return text
 
-ss = """При решении СЛАУ Ax=b методом Зейделя с критериями остановки Nmax=% и eps = %
- за S=% итераций достигнута точность eps_max=% и получено численное решение:\n"""
+ss = ""
+
+if endCauseIsEps:
+    ss += "Выход по точности\n"
+if endCauseIsS:
+    ss += "Выход по числу итераций\n"
+
+residual = (np.array(old_a) @ np.array(x)) - np.array(b)
+
+residual_abs = [abs(i) for i in residual]
+
+inf_norm = max(residual_abs)
+
+ss += "Норма невязки: " + str(inf_norm) + "\n"
+
+ss += """При решении СЛАУ Ax=b методом Зейделя с критериями остановки Nmax=% и eps = %
+ за S=% итераций достигнута точность eps_max=% и получено численное решение:\n\n"""
 
 ss = fillInfo(ss, [nMax, eps, s, eps_max])
 
 for i in range(n):
     ss += "x[" + str(i) + "] = " + str(x[i]) + "\n"
+
+
+
+
+
+
 
 print(ss)
