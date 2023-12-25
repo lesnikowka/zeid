@@ -3,11 +3,6 @@ import numpy as np
 nMax = 100
 s = 0
 eps = 1e-8
-eps_max = 0.
-eps_cur = 0.
-x_old = 0.
-x_new = 0.
-block_size = 3
 endCauseIsEps = False
 endCauseIsS = False
 end = False
@@ -47,7 +42,6 @@ for i in range(M + 1):
 for i in range(N + 1):
     v[i][0] = ux0(i * h)
     v[i][len(v[0])-1] = ux0_2(i * h)
-
 
 AA = -2 * ( 1 / (h ** 2) + 1 / (k ** 2))
 
@@ -126,11 +120,11 @@ def getInfo():
 n = (M-1)*(N-1)
 x = [0.]*n
 
-for i in range(3):
-    for j in range(3):
-        x[j*3+i] = v[i+1][j+1]
+for j in range(M-1):
+    for i in range(N-1):
+        x[j*(N-1)+i] = v[i+1][j+1]
 
-trueSolArr = [trueSol(x_i, y_i)  for y_i in [0.05, 0.1, 0.15] for x_i in [0.25, 0.5, 0.75]]
+trueSolArr = [trueSol(x_i * h, y_i * k)  for y_i in range(1, M) for x_i in range(1, N)]
 print("Истинное решение: ")
 print(trueSolArr)
 print()
@@ -138,15 +132,6 @@ print()
 info = getInfo()
 print(info)
 
-
-# Вычисления для отчета
-
-#sup_val =  np.linalg.eig(a)
-#val_abs = [abs(i) for i in sup_val[0]]
-#print("Минимальное собственное число A")
-#print(min(val_abs))
-#print("Оценка обратной матрицы к A")
-#print(1/min(val_abs))
 resTrue = np.array(x) - np.array(trueSolArr)
 print("Норма разности истинного решения с V(N)")
 print(max(abs(i)  for i in resTrue))
