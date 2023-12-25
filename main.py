@@ -2,7 +2,7 @@ import numpy as np
 
 nMax = 100
 s = 0
-eps = 0.00000001
+eps = 1e-8
 eps_max = 0.
 eps_cur = 0.
 x_old = 0.
@@ -21,7 +21,6 @@ N = 4
 h = (B-A)/N
 k = (D-C)/M
 
-
 def trueSol(x_, y_):
     return x_**3 + y_**3 + 2
 def u(x_, y_):
@@ -37,8 +36,10 @@ def ux0_2(x_):
 def f(x_, y_):
     return -6 * (x_ + y_)
 
+#Создаем нулевую матрицу V
 v = [ ([0.]*(N+1)).copy() for i in range(M + 1)]
 
+#Заполняем граничные значения
 for i in range(M + 1):
     v[0][i] = u0y(i * k)
     v[len(v)-1][i] = u1y(i * k)
@@ -47,11 +48,14 @@ for i in range(N + 1):
     v[i][0] = ux0(i * h)
     v[i][len(v[0])-1] = ux0_2(i * h)
 
+
+AA = -2 * ( 1 / (h ** 2) + 1 / (k ** 2))
+
+#метод Зейделя
 while not end:
     eps_max = 0.
     for j_ in range(1, M):
         for i_ in range(1, N):
-            AA = -2 * ( 1 / (h ** 2) + 1 / (k ** 2))
             v_old = v[i_][j_]
             v[i_][j_] = -f(i_*h, j_*k)
             v[i_][j_] -= v[i_ - 1][j_] * (1 / (h**2))
@@ -71,7 +75,6 @@ while not end:
         endCauseIsS = True
         end = True
 
-
 # ИНФОРМАЦИЯ ДЛЯ ОТЧЕТА
 
 def fillInfo(text, data):
@@ -86,15 +89,28 @@ def getInfo():
     if endCauseIsS:
         ss += "Выход по числу итераций\n"
 
-    residual = (np.array(a) @ np.array(x)) - np.array(b)
-    inf_norm = 0
+    residual_ = []
 
-    for ri in residual:
-        inf_norm += ri * ri
 
-    inf_norm = inf_norm ** 0.5
+    #считаем невязку
+    for j_ in range(1, M):
+        for j_ in range(1, N):
+            res_i = f(i_ * h, j_ * k)
+            res_i += v[i_ - 1][j_] * (1 / (h ** 2))
+            res_i += v[i_ + 1][j_] * (1 / (h ** 2))
+            res_i +=  v[i_][j_ - 1] * (1 / (k ** 2))
+            res_i +=  v[i_][j_ + 1] * (1 / (k ** 2))
+            res_i += v[i_][j_] * AA
+            residual_.append(res_i)
 
-    ss += "Норма невязки: " + str(inf_norm) + "\n"
+    inf_norm_ = 0
+
+    for ri in residual_:
+        inf_norm_ += ri * ri
+
+    inf_norm_ = inf_norm_ ** 0.5
+
+    ss += "Норма невязки: " + str(inf_norm_) + "\n"
 
     ss += """При решении СЛАУ Ax=b методом Зейделя с критериями остановки Nmax=% и eps = %
      за S=% итераций достигнута точность eps_max=% и получено численное решение:\n\n"""
@@ -114,35 +130,6 @@ for i in range(3):
     for j in range(3):
         x[j*3+i] = v[i+1][j+1]
 
-a = [
-    [-832., 16., 0., 400., 0., 0., 0., 0., 0.],
-    [16., -832., 16., 0., 400., 0., 0., 0., 0.],
-    [0., 16., -832., 0, 0., 400., 0., 0., 0.],
-    [400., 0., 0., -832., 16., 0., 400., 0., 0.],
-    [0., 400., 0., 16., -832., 16., 0., 400., 0.],
-    [0., 0., 400., 0., 16., -832., 0., 0., 400.],
-    [0., 0., 0., 400., 0., 0., -832., 16., 0.],
-    [0., 0., 0., 0., 400., 0., 16., -832., 16.],
-    [0., 0., 0., 0., 0., 400., 0., 16., -832.]
-]
-
-b = [
-    -836.452,
-    -846.7,
-    -1011.952,
-    -29.916,
-    3.6,
-    -42.916,
-    -839.104,
-    -849.3,
-    -1014.604
-]
-
-gauss_sol = np.linalg.solve(a, b)
-print("Решение методом Гаусса")
-print(gauss_sol)
-print()
-
 trueSolArr = [trueSol(x_i, y_i)  for y_i in [0.05, 0.1, 0.15] for x_i in [0.25, 0.5, 0.75]]
 print("Истинное решение: ")
 print(trueSolArr)
@@ -154,12 +141,12 @@ print(info)
 
 # Вычисления для отчета
 
-sup_val =  np.linalg.eig(a)
-val_abs = [abs(i) for i in sup_val[0]]
-print("Минимальное собственное число A")
-print(min(val_abs))
-print("Оценка обратной матрицы к A")
-print(1/min(val_abs))
+#sup_val =  np.linalg.eig(a)
+#val_abs = [abs(i) for i in sup_val[0]]
+#print("Минимальное собственное число A")
+#print(min(val_abs))
+#print("Оценка обратной матрицы к A")
+#print(1/min(val_abs))
 resTrue = np.array(x) - np.array(trueSolArr)
 print("Норма разности истинного решения с V(N)")
 print(max(abs(i)  for i in resTrue))
