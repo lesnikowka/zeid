@@ -32,7 +32,7 @@ def f(x_, y_):
     return -6 * (x_ + y_)
 
 #Создаем нулевую матрицу V
-v = [ ([0.]*(N+1)).copy() for i in range(M + 1)]
+v = [ ([0.]*(M+1)).copy() for i in range(N + 1)]
 
 #Заполняем граничные значения
 for i in range(M + 1):
@@ -88,7 +88,7 @@ def getInfo():
 
     #считаем невязку
     for j_ in range(1, M):
-        for j_ in range(1, N):
+        for i_ in range(1, N):
             res_i = f(i_ * h, j_ * k)
             res_i += v[i_ - 1][j_] * (1 / (h ** 2))
             res_i += v[i_ + 1][j_] * (1 / (h ** 2))
