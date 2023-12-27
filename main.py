@@ -1,6 +1,6 @@
 import numpy as np
 
-nMax = 100
+nMax = 1000
 s = 0
 eps = 1e-8
 endCauseIsEps = False
@@ -15,6 +15,9 @@ M = 4
 N = 4
 h = (B-A)/N
 k = (D-C)/M
+
+M = int(input("Введите число разбиений по y: "))
+N = int(input("Введите число разбиений по x: "))
 
 def trueSol(x_, y_):
     return x_**3 + y_**3 + 2
@@ -69,6 +72,19 @@ while not end:
         endCauseIsS = True
         end = True
 
+
+temp_v = np.array([[0.]*(N+1)]*(M+1))
+temp_true_sol_arr = np.array([[0.]*(N+1)]*(M+1))
+for j in range(M,-1,-1):
+    for i in range(0, N + 1):
+        temp_v[M - j, i] = v[i][j]
+        temp_true_sol_arr[M - j, i] = trueSol(i * h, j * k)
+
+print("V(N) в виде сетки:")
+print(temp_v)
+print("Истинное решение в виде сетки")
+print(temp_true_sol_arr)
+
 # ИНФОРМАЦИЯ ДЛЯ ОТЧЕТА
 
 def fillInfo(text, data):
@@ -92,8 +108,8 @@ def getInfo():
             res_i = f(i_ * h, j_ * k)
             res_i += v[i_ - 1][j_] * (1 / (h ** 2))
             res_i += v[i_ + 1][j_] * (1 / (h ** 2))
-            res_i +=  v[i_][j_ - 1] * (1 / (k ** 2))
-            res_i +=  v[i_][j_ + 1] * (1 / (k ** 2))
+            res_i += v[i_][j_ - 1] * (1 / (k ** 2))
+            res_i += v[i_][j_ + 1] * (1 / (k ** 2))
             res_i += v[i_][j_] * AA
             residual_.append(res_i)
 
@@ -104,7 +120,7 @@ def getInfo():
 
     inf_norm_ = inf_norm_ ** 0.5
 
-    ss += "Норма невязки: " + str(inf_norm_) + "\n"
+    ss += "Норма невязки на выходе: " + str(inf_norm_) + "\n"
 
     ss += """При решении СЛАУ Ax=b методом Зейделя с критериями остановки Nmax=% и eps = %
      за S=% итераций достигнута точность eps_max=% и получено численное решение:\n\n"""
@@ -125,13 +141,13 @@ for j in range(M-1):
         x[j*(N-1)+i] = v[i+1][j+1]
 
 trueSolArr = [trueSol(x_i * h, y_i * k)  for y_i in range(1, M) for x_i in range(1, N)]
-print("Истинное решение: ")
-print(trueSolArr)
-print()
+#print("Истинное решение: ")
+#print(trueSolArr)
+#print()
 
 info = getInfo()
 print(info)
 
 resTrue = np.array(x) - np.array(trueSolArr)
-print("Норма разности истинного решения с V(N)")
-print(max(abs(i)  for i in resTrue))
+print("Норма общей погрешности с V(N)")
+print(max([abs(i)  for i in resTrue]))
