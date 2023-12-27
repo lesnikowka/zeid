@@ -13,11 +13,13 @@ C = 0
 D = 0.2
 M = 4
 N = 4
-h = (B-A)/N
-k = (D-C)/M
 
 M = int(input("Введите число разбиений по y: "))
 N = int(input("Введите число разбиений по x: "))
+
+
+h = (B-A)/N
+k = (D-C)/M
 
 def trueSol(x_, y_):
     return x_**3 + y_**3 + 2
@@ -141,9 +143,6 @@ for j in range(M-1):
         x[j*(N-1)+i] = v[i+1][j+1]
 
 trueSolArr = [trueSol(x_i * h, y_i * k)  for y_i in range(1, M) for x_i in range(1, N)]
-#print("Истинное решение: ")
-#print(trueSolArr)
-#print()
 
 info = getInfo()
 print(info)
